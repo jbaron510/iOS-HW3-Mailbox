@@ -16,6 +16,7 @@ class mailboxViewController: UIViewController {
     @IBOutlet var messagePanGestureRecognizer: UIPanGestureRecognizer!
     
     @IBOutlet weak var messageView: UIView!
+    @IBOutlet weak var feedImage: UIImageView!
     
     @IBOutlet weak var messageImage: UIImageView!
     
@@ -27,9 +28,7 @@ class mailboxViewController: UIViewController {
     
     @IBOutlet weak var laterIconImage: UIImageView!
     @IBOutlet weak var archiveIconImage: UIImageView!
-    
     @IBOutlet weak var listIconImage: UIImageView!
-    
     @IBOutlet weak var deleteIconImage: UIImageView!
     
     
@@ -70,16 +69,7 @@ class mailboxViewController: UIViewController {
         var velocity = messagePanGestureRecognizer.velocityInView(view)
         
 
-        moveIconsLeft = false
-        moveIconsRight = false
         
-//        var isGreen = false
-//        var isYellow = false
-//        var isRed = false
-//        var isBrown = false
-//        var isGray = true
-//        var isSolidLeft = false
-//        var isSolidRight = false
         
         
         print("panning")
@@ -87,8 +77,11 @@ class mailboxViewController: UIViewController {
         if messagePanGestureRecognizer.state == UIGestureRecognizerState.Began {
             print("Gesture began at: \(point)")
             messageInitialCenter = messageImage.center
-            laterIconInitialCenter = laterIconImage.center
             archiveIconInitialCenter = archiveIconImage.center
+            laterIconInitialCenter = laterIconImage.center
+            moveIconsLeft = false
+            moveIconsRight = false
+            print("message init center.x = \(messageInitialCenter.x)")
 
         } else if messagePanGestureRecognizer.state == UIGestureRecognizerState.Changed {
             print("Gesture changed at: \(point) transX: \(translation.x) velX: \(velocity.x)")
@@ -97,191 +90,114 @@ class mailboxViewController: UIViewController {
             
             //if past threshold, start moving icons
             if moveIconsRight == true {
-                laterIconImage.center.x = laterIconInitialCenter.x + translation.x - 30
-                listIconImage.center.x = laterIconInitialCenter.x + translation.x - 30
-                
-            }
-            if moveIconsLeft == true {
-                archiveIconImage.center.x = archiveIconInitialCenter.x + translation.x + 30
-                deleteIconImage.center.x = archiveIconInitialCenter.x + translation.x + 30
-                
+                archiveIconImage.center.x = archiveIconInitialCenter.x + translation.x - 60
+                deleteIconImage.center.x = archiveIconInitialCenter.x + translation.x - 60
             }
             
-            if translation.x == 30 {
+            if moveIconsLeft == true {
+                laterIconImage.center.x = laterIconInitialCenter.x + translation.x + 60
+                listIconImage.center.x = laterIconInitialCenter.x + translation.x + 60
+            }
+            
+            if 30 <= translation.x && translation.x < 60 {
                 
-                //make the archive icon opaque when sliding to the right, translucent when goig left
-                if velocity.x > 0 {
-                    archiveIconImage.alpha = CGFloat(1.0)
-                    
-                } else if velocity.x < 0 {
-                    archiveIconImage.alpha = CGFloat(0.5)
-                    
-                }
-                print("+")
+                //make the archive icon opaque
+                archiveIconImage.alpha = 1
                 
-            } else if translation.x == -30 {
-                //start making later icon opaque
-                if velocity.x < 0 {
-                    laterIconImage.alpha = CGFloat(1.0)
-                    
-                } else if velocity.x > 0 {
-                    laterIconImage.alpha = CGFloat(0.5)
-                   
-                }
-                
-            } else if translation.x == 60 {
-                
-                if velocity.x > 0 {
-                    //set bkgn color to green
-                    // start moving archive icon
-                    messageView.backgroundColor = UIColor.greenColor()
-                    moveIconsRight = true
-                } else if velocity.x < 0 {
-                    //set bkgn color to gray
-                    // stop moving archive icon
+                // if moving from right back towards center, reset the bkgnd to gray, stop moving icons and reset their positions
+                if moveIconsRight == true {
                     messageView.backgroundColor = UIColor.lightGrayColor()
                     moveIconsRight = false
+                    archiveIconImage.center.x = archiveIconInitialCenter.x
+                    deleteIconImage.center.x = archiveIconInitialCenter.x
                 }
-                    
-            } else if translation.x == -60 {
-                print("--")
-                if velocity.x < 0 {
-                    //set bkgn color to yellow
-                    messageView.backgroundColor = UIColor.yellowColor()
-                    //start moving the later icon
-                    moveIconsLeft = true
-                } else if velocity.x > 0 {
+                print("30 to 60: gray with solid stationary archive icon")
+                
+            } else if -60 < translation.x && translation.x <= -30 {
+                //start making later icon opaque
+                laterIconImage.alpha = CGFloat(1.0)
+                //if moving left to right, reset the bknd color, stop moving the icons, and reset them to their original position
+                if moveIconsLeft == true {
                     messageView.backgroundColor = UIColor.lightGrayColor()
                     moveIconsLeft = false
+                    laterIconImage.center.x = laterIconInitialCenter.x
+                    listIconImage.center.x = laterIconInitialCenter.x
                 }
+                print("-60 to -30: gray with solid stationary later icon")
                 
-                
-                
-            } else if translation.x == 260 {
-                print("++")
-                if velocity.x > 0 {
-                    //set bkgnd color to red
-                    //archive icon changes to delete icon
-                    messageView.backgroundColor = UIColor.redColor()
-                    archiveIconImage.alpha = 0
-                    deleteIconImage.alpha = 1
-                } else if velocity.x < 0 {
-                    //set to green
-                    // delete icon changes to archive icon
-                    messageView.backgroundColor = UIColor.greenColor()
+            } else if 60 <= translation.x && translation.x < 260 {
+            
+                //set bkgn color to green
+                // start moving archive icon
+                messageView.backgroundColor = UIColor.greenColor()
+                moveIconsRight = true
+                print("move icons right is \(moveIconsRight) \(archiveIconInitialCenter.x + translation.x - 60)")
+                if archiveIconImage.alpha == 0 {
                     archiveIconImage.alpha = 1
                     deleteIconImage.alpha = 0
                 }
+                print ("60 to 260: green with moving archive icon")
+            
+               
+                    
+            } else if -260 <= translation.x && translation.x < -60 {
                 
-            } else if translation.x == -260 {
-                if velocity.x < 0 {
-                    //set bkgnd color to brown
-                    messageView.backgroundColor = UIColor.brownColor()
-                    //later icon changes to list icon
-                    laterIconImage.alpha = 0
-                    listIconImage.alpha = 1
-                    print("--")
-                } else if velocity.x > 0 {
-                    //set background color to <>
-                    //change list icon to later icon
-                    messageView.backgroundColor = UIColor.yellowColor()
-                    //later icon changes to list icon
+                
+                //set bkgn color to yellow
+                messageView.backgroundColor = UIColor.yellowColor()
+                //start moving the later icon
+                moveIconsLeft = true
+                print("move icons left is \(moveIconsLeft) \(laterIconInitialCenter.x + translation.x + 60)")
+                if laterIconImage.alpha == 0 {
                     laterIconImage.alpha = 1
                     listIconImage.alpha = 0
                 }
+                print("-260 to -60: yellow bknd, moving later icon")
+                
+                
+            } else if 260 <= translation.x {
+                
+                //set bkgnd color to red
+                //archive icon changes to delete icon
+                messageView.backgroundColor = UIColor.redColor()
+                archiveIconImage.alpha = 0
+                deleteIconImage.alpha = 1
+                print("> 260: red bknd, moving delete icon")
+
+            } else if translation.x < -260 {
+                
+                //set bkgnd color to brown
+                
+                //later icon changes to list icon
+                if messageView.backgroundColor != UIColor.brownColor() {
+                    messageView.backgroundColor = UIColor.brownColor()
+                    laterIconImage.alpha = 0
+                    listIconImage.alpha = 1
+                }
+                print("-260: brown bkgd, later icon replaced by list icon")
                 
             }
-//            else {
-//                //set bknd color back to gray
-//                messageView.backgroundColor = UIColor.lightGrayColor()
-//                
-//                //later icon changes to semi transparent
-//                //archive icon turns semi transparent
-//                if isSolidRight == true {
-//                    archiveIconImage.alpha = CGFloat(0.5)
-//                    isSolidRight = false
-//                } else if isSolidLeft == true {
-//                    laterIconImage.alpha = CGFloat(0.5)
-//                    isSolidLeft = false
-//            }
             
-                
- //           }
-            
-            
-//            if translation.x >= 30 && translation.x <= 60 {
-//                
-//                //make the archive icon opaque if it isn't already
-//                if isSolidRight == false {
-//                    archiveIconImage.alpha = CGFloat(1.0)
-//                    isSolidRight = true
-//                }
-//                print("+")
-//                
-//            } else if translation.x >= -60 && translation.x <=  -30 {
-//                //start making later icon opaque
-//                laterIconImage.alpha = CGFloat(1.0)
-//                
-//            } else if translation.x > 60 && translation.x < 260 {
-//                //set bkgn color to green
-//                // start moving archive icon
-//                
-//                messageView.backgroundColor = UIColor.greenColor()
-//                
-//                print("+")
-//            
-//            } else if translation.x >= 260 {
-//                print("++")
-//                
-//                //set bkgnd color to red
-//                //archive icon changes to delete icon
-//                 messageView.backgroundColor = UIColor.redColor()
-//            
-//            } else if translation.x <= -60 && translation.x > -260 {
-//                print("--")
-//                //set bkgn color to yellow
-//                 messageView.backgroundColor = UIColor.yellowColor()
-//                //start moving the later icon
-//                
-//            } else if translation.x <= -260 {
-//                //set bkgnd color to brown
-//                 messageView.backgroundColor = UIColor.brownColor()
-//                //later icon changes to list icon
-//                print("--")
-//           
-//            } else {
-//                //set bknd color back to gray
-//                 messageView.backgroundColor = UIColor.lightGrayColor()
-//                
-//                //later icon changes to semi transparent
-//                //archive icon turns semi transparent
-//                if isSolidRight == true {
-//                    archiveIconImage.alpha = CGFloat(0.5)
-//                    isSolidRight = false
-//                } else if isSolidLeft == true {
-//                    laterIconImage.alpha = CGFloat(0.5)
-//                    isSolidLeft = false
-//                }
-//                
-//                
-//            }
-//            
-            
-            
-            
-        
+      
         } else if messagePanGestureRecognizer.state == UIGestureRecognizerState.Ended {
             
             print("Gesture ended at: \(point)")
             
-            //if -60<translation<60, return image to original position
-            if translation.x > -60 && translation.x < 60 {
+            //if -60<translation<60, return image to original position and color
+            if abs(translation.x) < 60  {
                 messageImage.center.x = messageInitialCenter.x
                 laterIconImage.center.x = laterIconInitialCenter.x
                 listIconImage.center.x = laterIconInitialCenter.x
                 archiveIconImage.center.x = archiveIconInitialCenter.x
                 deleteIconImage.center.x = archiveIconInitialCenter.x
                 messageView.backgroundColor = UIColor.lightGrayColor()
+                print("message init center.x = \(messageInitialCenter.x)")
+                print("message image center.x = \(messageImage.center.x)")
+            } else if translation.x >= 60 {
+                //move the feed up
+                
+                messageImage.center.x = 320
+                
             }
             
             //else if 61<translation< 261 show the reschedule options, continue to open?
@@ -301,7 +217,8 @@ class mailboxViewController: UIViewController {
         // Do any additional setup after loading the view.
     
         mailboxScrollView.contentSize = CGSize(width: 320, height:1367)
-        
+
+
     
     }
 
