@@ -31,6 +31,9 @@ class mailboxViewController: UIViewController {
     @IBOutlet weak var listIconImage: UIImageView!
     @IBOutlet weak var deleteIconImage: UIImageView!
     
+    @IBOutlet weak var rescheduleViewImage: UIImageView!
+    
+    @IBOutlet weak var listViewImage: UIImageView!
     
 //    On dragging the message left...
 //    Initially, the revealed background color should be gray.
@@ -102,26 +105,36 @@ class mailboxViewController: UIViewController {
             if 30 <= translation.x && translation.x < 60 {
                 
                 //make the archive icon opaque
-                archiveIconImage.alpha = 1
+                UIView.animateWithDuration(0.4, animations: {
+                    self.archiveIconImage.alpha = 1
+                })
+                
                 
                 // if moving from right back towards center, reset the bkgnd to gray, stop moving icons and reset their positions
                 if moveIconsRight == true {
-                    messageView.backgroundColor = UIColor.lightGrayColor()
+                    UIView.animateWithDuration(0.4, animations: {
+                        self.messageView.backgroundColor = UIColor.lightGrayColor()
+                    })
                     moveIconsRight = false
                     archiveIconImage.center.x = archiveIconInitialCenter.x
                     deleteIconImage.center.x = archiveIconInitialCenter.x
+                    laterIconImage.alpha = 0.5
                 }
                 print("30 to 60: gray with solid stationary archive icon")
                 
             } else if -60 < translation.x && translation.x <= -30 {
                 //start making later icon opaque
-                laterIconImage.alpha = CGFloat(1.0)
+                laterIconImage.alpha = 1
+                
                 //if moving left to right, reset the bknd color, stop moving the icons, and reset them to their original position
                 if moveIconsLeft == true {
-                    messageView.backgroundColor = UIColor.lightGrayColor()
+                    UIView.animateWithDuration(0.4, animations: {
+                        self.messageView.backgroundColor = UIColor.lightGrayColor()
+                    })
                     moveIconsLeft = false
                     laterIconImage.center.x = laterIconInitialCenter.x
                     listIconImage.center.x = laterIconInitialCenter.x
+                    archiveIconImage.alpha = 0.5
                 }
                 print("-60 to -30: gray with solid stationary later icon")
                 
@@ -129,7 +142,10 @@ class mailboxViewController: UIViewController {
             
                 //set bkgn color to green
                 // start moving archive icon
-                messageView.backgroundColor = UIColor.greenColor()
+                UIView.animateWithDuration(0.4, animations: {
+                    self.messageView.backgroundColor = UIColor.greenColor()
+                })
+                laterIconImage.alpha = 0
                 moveIconsRight = true
                 print("move icons right is \(moveIconsRight) \(archiveIconInitialCenter.x + translation.x - 60)")
                 if archiveIconImage.alpha == 0 {
@@ -144,7 +160,10 @@ class mailboxViewController: UIViewController {
                 
                 
                 //set bkgn color to yellow
-                messageView.backgroundColor = UIColor.yellowColor()
+                UIView.animateWithDuration(0.4, animations: {
+                    self.messageView.backgroundColor = UIColor.yellowColor()
+                })
+                archiveIconImage.alpha = 0
                 //start moving the later icon
                 moveIconsLeft = true
                 print("move icons left is \(moveIconsLeft) \(laterIconInitialCenter.x + translation.x + 60)")
@@ -159,7 +178,9 @@ class mailboxViewController: UIViewController {
                 
                 //set bkgnd color to red
                 //archive icon changes to delete icon
-                messageView.backgroundColor = UIColor.redColor()
+                UIView.animateWithDuration(0.4, animations: {
+                    self.messageView.backgroundColor = UIColor.redColor()
+                })
                 archiveIconImage.alpha = 0
                 deleteIconImage.alpha = 1
                 print("> 260: red bknd, moving delete icon")
@@ -170,7 +191,9 @@ class mailboxViewController: UIViewController {
                 
                 //later icon changes to list icon
                 if messageView.backgroundColor != UIColor.brownColor() {
-                    messageView.backgroundColor = UIColor.brownColor()
+                    UIView.animateWithDuration(0.4, animations: {
+                        self.messageView.backgroundColor = UIColor.brownColor()
+                    })
                     laterIconImage.alpha = 0
                     listIconImage.alpha = 1
                 }
@@ -193,22 +216,84 @@ class mailboxViewController: UIViewController {
                 messageView.backgroundColor = UIColor.lightGrayColor()
                 print("message init center.x = \(messageInitialCenter.x)")
                 print("message image center.x = \(messageImage.center.x)")
+            
+            //move the feed up for both archive and delete (slid right more than 60px)
             } else if translation.x >= 60 {
-                //move the feed up
                 
-                messageImage.center.x = 320
+//                UIView.animateWithDuration(0.4, animations: {
+//                    Bool in
+//                    self.feedImage.center.y = self.feedImage.center.y - 65
+//                })
+                UIView.animateWithDuration(0.4, animations: {() -> Void in
+                    self.messageImage.center.x = self.messageInitialCenter.x + 320
+                    self.archiveIconImage.center.x = 320 - self.archiveIconInitialCenter.x
+                    self.deleteIconImage.center.x = 320 - self.archiveIconInitialCenter.x
+                    self.messageView.alpha = 0
+                    },
+                    completion: {(Bool) -> Void in []
+                        UIView.animateWithDuration(0.4, animations: {
+                            self.feedImage.center.y = self.feedImage.center.y - 65
+                        })
+                })
                 
+            
+            //else if -61 -- -261 show the reschedule options, continue to open
+            } else if -260 < translation.x && translation.x <= -60 {
+                UIView.animateWithDuration(0.4, animations: {() -> Void in
+                    self.messageImage.center.x = self.messageInitialCenter.x - 320
+                    self.laterIconImage.center.x = 320 - self.laterIconInitialCenter.x
+                    self.listIconImage.center.x = 320 - self.laterIconInitialCenter.x
+                    },
+                    completion: {(Bool) -> Void in []
+                        UIView.animateWithDuration(0.4, animations: {
+                            self.rescheduleViewImage.alpha = 1
+                        })
+                })
+
+            
+            //else if translation < -260 finish opening and show the list options
+            } else if translation.x < -260 {
+                UIView.animateWithDuration(0.4, animations: {() -> Void in
+                    self.messageImage.center.x = self.messageInitialCenter.x - 320
+                    self.laterIconImage.center.x = 320 - self.laterIconInitialCenter.x
+                    self.listIconImage.center.x = 320 - self.laterIconInitialCenter.x
+                    //                    self.messageView.alpha = 0
+                    },
+                    completion: {(Bool) -> Void in []
+                        UIView.animateWithDuration(0.4, animations: {
+                            self.listViewImage.alpha = 1
+                        })
+                })
+
             }
             
-            //else if 61<translation< 261 show the reschedule options, continue to open?
             
-            //else if translation > 260 finish opening and show the list options
             
-            //else if
-        }
+        }  //end of panning ended
 
         
+    }  // end of pan gesture fn
+    
+    
+    @IBAction func tapListView(sender: UITapGestureRecognizer) {
+        UIView.animateWithDuration(0.4, animations: {
+            self.listViewImage.alpha = 0
+            self.messageView.alpha = 0
+            self.feedImage.center.y = self.feedImage.center.y - 65
+        })
+    
     }
+    
+    
+    @IBAction func tapRescheduleView(sender: UITapGestureRecognizer) {
+        UIView.animateWithDuration(0.4, animations: {
+            self.rescheduleViewImage.alpha = 0
+            self.messageView.alpha = 0
+            self.feedImage.center.y = self.feedImage.center.y - 65
+        })
+
+    }
+    
     
     
     override func viewDidLoad() {
